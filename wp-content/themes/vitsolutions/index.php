@@ -15,43 +15,106 @@
 get_header();
 ?>
 
-	<main id="primary" class="site-main">
 
-		<?php
-		if ( have_posts() ) :
+  <!-- Page Title -->
+  <div class="page-title">
+    <div class="container d-lg-flex justify-content-between align-items-center">
+      <h1 class="mb-2 mb-lg-0">Blog</h1>
+      <nav class="breadcrumbs">
+        <ol>
+          <li><a href="<?php echo home_url(); ?>">Home</a></li>
+          <li class="current">Blog</li>
+        </ol>
+      </nav>
+    </div>
+  </div><!-- End Page Title -->
 
-			if ( is_home() && ! is_front_page() ) :
-				?>
-				<header>
-					<h1 class="page-title screen-reader-text"><?php single_post_title(); ?></h1>
-				</header>
-				<?php
-			endif;
+  <!-- Blog Posts Section -->
+  <section id="blog-posts" class="blog-posts section">
+    <div class="container">
+      <div class="row gy-4">
+        <?php if (have_posts()) : while (have_posts()) : the_post(); ?>
+          <div class="col-lg-4">
+            <article>
 
-			/* Start the Loop */
-			while ( have_posts() ) :
-				the_post();
+              <div class="post-img">
+                <a href="<?php the_permalink(); ?>">
+                  <?php if (has_post_thumbnail()) : ?>
+                    <?php the_post_thumbnail('medium_large', ['class' => 'img-fluid']); ?>
+                  <?php else : ?>
+                    <img src="<?php echo get_template_directory_uri(); ?>/assets/img/default.jpg" class="img-fluid" alt="<?php the_title(); ?>">
+                  <?php endif; ?>
+                </a>
+              </div>
 
-				/*
-				 * Include the Post-Type-specific template for the content.
-				 * If you want to override this in a child theme, then include a file
-				 * called content-___.php (where ___ is the Post Type name) and that will be used instead.
-				 */
-				get_template_part( 'template-parts/content', get_post_type() );
+              <p class="post-category">
+                <?php
+                $category = get_the_category();
+                if (!empty($category)) {
+                  echo esc_html($category[0]->name);
+                }
+                ?>
+              </p>
 
-			endwhile;
+              <h2 class="title">
+                <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
+              </h2>
 
-			the_posts_navigation();
+              <div class="d-flex align-items-center">
+                <img src="<?php echo get_avatar_url(get_the_author_meta('ID')); ?>" alt="<?php the_author(); ?>" class="img-fluid post-author-img flex-shrink-0" width="50" height="50">
+                <div class="post-meta">
+                  <p class="post-author"><?php the_author(); ?></p>
+                  <p class="post-date">
+                    <time datetime="<?php echo get_the_date('Y-m-d'); ?>"><?php echo get_the_date(); ?></time>
+                  </p>
+                </div>
+              </div>
 
-		else :
+            </article>
+          </div><!-- End post list item -->
+        <?php endwhile; else : ?>
+          <div class="col-12">
+            <p>No posts found.</p>
+          </div>
+        <?php endif; ?>
+      </div>
+    </div>
+  </section><!-- /Blog Posts Section -->
 
-			get_template_part( 'template-parts/content', 'none' );
+  <!-- Blog Pagination Section -->
+<section id="blog-pagination" class="blog-pagination section">
+  <div class="container">
+    <div class="d-flex justify-content-center">
+      <ul>
+        <?php
+        $big = 999999999; // need an unlikely integer
+        $pages = paginate_links(array(
+          'base'      => str_replace($big, '%#%', esc_url(get_pagenum_link($big))),
+          'format'    => '?paged=%#%',
+          'current'   => max(1, get_query_var('paged')),
+          'total'     => $wp_query->max_num_pages,
+          'type'      => 'array',
+          'prev_text' => '<i class="bi bi-chevron-left"></i>',
+          'next_text' => '<i class="bi bi-chevron-right"></i>',
+        ));
 
-		endif;
-		?>
+        if ($pages) {
+          foreach ($pages as $page) {
+            // Check if this is the current page
+            if (strpos($page, 'current') !== false) {
+              echo '<li> <a href="#" class="active">' . str_replace('page-numbers', '', $page) . '</a></li>';
+            } else {
+              echo '<li>' . str_replace('page-numbers', '', $page) . '</li>';
+            }
+          }
+        }
+        ?>
+      </ul>
+    </div>
+  </div>
+  
+</section><!-- /Blog Pagination Section -->
 
-	</main><!-- #main -->
 
 <?php
-get_sidebar();
 get_footer();
